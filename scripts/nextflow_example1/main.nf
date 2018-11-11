@@ -27,8 +27,7 @@ process get_seq_length {
     """
 }
 
-process python_transform_list {
-    container 'python:3.7-slim'
+process r_transform_list {
 
     input:
     val l from lengths.collect()
@@ -37,37 +36,8 @@ process python_transform_list {
     stdout lengths_transformed
 
     """
-    #!/usr/local/bin/python
-
-    numbers = $l
-    lstring = 'c(' + ','.join([str(x) for x in numbers]) + ')'
-    print(lstring)
-    """
-}
-
-process plot_lengths_hist {
-    container 'rocker/tidyverse:3.5'
-    publishDir params.out_dir, mode: 'copy'
-
-    input:
-    val l from lengths_transformed
-
-    output:
-    file params.out_file into last_fig
-
-    """
     #!/usr/local/bin/Rscript
 
-    library(tidyverse)
-    numbers = tibble(n = $l)
-
-    ggplot(numbers, aes(x=n)) +
-        geom_histogram() +
-        xlab('sequence length') +
-        ylab('count') +
-        theme_bw()
-    ggsave('$params.out_file', width = 10, height = 8, units = 'cm')
+    print($l)
     """
 }
-
-lengths_transformed.subscribe {  println it  }
